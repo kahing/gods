@@ -35,7 +35,9 @@ func (iterator *Iterator) Next() bool {
 		return false
 	}
 	if iterator.index != 0 {
-		iterator.element = iterator.element.next
+		for ok := true; ok; ok = iterator.element.tombstone {
+			iterator.element = iterator.element.next
+		}
 	} else {
 		iterator.element = iterator.list.first
 	}
@@ -101,4 +103,13 @@ func (iterator *Iterator) First() bool {
 func (iterator *Iterator) Last() bool {
 	iterator.End()
 	return iterator.Prev()
+}
+
+// Remove removes the current element from the container.
+func (iterator *Iterator) Remove() {
+	if iterator.element == nil {
+		panic("no current element")
+	}
+
+	iterator.list.remove(iterator.element)
 }

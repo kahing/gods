@@ -29,9 +29,10 @@ type List struct {
 }
 
 type element struct {
-	value interface{}
-	prev  *element
-	next  *element
+	value     interface{}
+	prev      *element
+	next      *element
+	tombstone bool
 }
 
 // New instantiates a new list and adds the passed values, if any, to the list
@@ -100,6 +101,26 @@ func (list *List) Get(index int) (interface{}, bool) {
 	return element.value, true
 }
 
+func (list *List) remove(element *element) {
+	if element == list.first {
+		list.first = element.next
+	}
+	if element == list.last {
+		list.last = element.prev
+	}
+	if element.prev != nil {
+		element.prev.next = element.next
+	}
+	if element.next != nil {
+		element.next.prev = element.prev
+	}
+
+	element.tombstone = true
+	element = nil
+
+	list.size--
+}
+
 // Remove removes the element at the given index from the list.
 func (list *List) Remove(index int) {
 
@@ -124,22 +145,8 @@ func (list *List) Remove(index int) {
 		}
 	}
 
-	if element == list.first {
-		list.first = element.next
-	}
-	if element == list.last {
-		list.last = element.prev
-	}
-	if element.prev != nil {
-		element.prev.next = element.next
-	}
-	if element.next != nil {
-		element.next.prev = element.prev
-	}
-
+	list.remove(element)
 	element = nil
-
-	list.size--
 }
 
 // Contains check if values (one or more) are present in the set.
